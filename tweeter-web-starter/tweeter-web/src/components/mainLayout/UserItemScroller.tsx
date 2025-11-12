@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
-import { AuthToken, FakeData, User } from "tweeter-shared/src";
+// import { AuthToken, FakeData, User } from "tweeter-shared";
 import { useParams } from "react-router-dom";
 import UserItem from "../userItem/UserItem";
 import { useMessageActions } from "../toaster/MessageHooks";
 import { useUserInfo, useUserInfoActions } from "../userInfo/UserInfoHooks";
+import { FolloweePresenter, FolloweeView } from "../../presenter/FolloweePresenter";
+import { AuthToken, User } from "tweeter-shared";
 
 export const PAGE_SIZE = 10;
 
@@ -31,6 +33,12 @@ const UserItemScroller = (props : Props) => {
     const { displayedUser, authToken } = useUserInfo();
     const { setDisplayed } = useUserInfoActions();
     const { displayedUser: displayedUserAliasParam } = useParams();
+
+    const listener: FolloweeView = {
+
+    }
+
+    const presenter = new FolloweePresenter(listener);
 
     // Update the displayed user context variable whenever the displayedUser url parameter changes. This allows browser forward and back buttons to work correctly.
     useEffect(() => {
@@ -82,8 +90,7 @@ const UserItemScroller = (props : Props) => {
         authToken: AuthToken,
         alias: string
     ): Promise<User | null> => {
-        // TODO: Replace with the result of calling server
-        return FakeData.instance.findUserByAlias(alias);
+        return presenter.getUser(authToken, alias);
     };
 
     return (

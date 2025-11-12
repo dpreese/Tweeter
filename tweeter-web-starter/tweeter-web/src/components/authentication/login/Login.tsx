@@ -3,10 +3,11 @@ import "bootstrap/dist/css/bootstrap.css";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthenticationFormLayout from "../AuthenticationFormLayout";
-import { AuthToken, FakeData, User } from "tweeter-shared/src";
+// import { AuthToken, FakeData, User } from "tweeter-shared/src";
 import AuthenticationFields from "../AuthenticationFields";
 import { useMessageActions } from "../../toaster/MessageHooks";
 import { useUserInfoActions } from "../../userInfo/UserInfoHooks";
+import { User, AuthToken, FakeData } from "tweeter-shared";
 
 interface Props {
   originalUrl?: string;

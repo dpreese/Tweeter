@@ -1,8 +1,9 @@
 import { useContext } from "react";
-import { User, AuthToken, FakeData } from "tweeter-shared/src"
+// import { User, AuthToken, FakeData } from "tweeter-shared/src"
 import { UserInfoActionsContext, UserInfoContext } from "./UserInfoContexts";
 import { useNavigate } from "react-router-dom";
 import { useMessageActions } from "../toaster/MessageHooks";
+import { User, AuthToken, FakeData } from "tweeter-shared";
 
 interface UserInfoActions {
   updateUser: (

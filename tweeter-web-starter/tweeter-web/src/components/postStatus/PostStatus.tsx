@@ -1,8 +1,9 @@
 import "./PostStatus.css";
 import { useState } from "react";
-import { AuthToken, Status } from "tweeter-shared/src";
+// import { AuthToken, Status } from "tweeter-shared/src";
 import { useMessageActions } from "../toaster/MessageHooks";
 import { useUserInfo } from "../userInfo/UserInfoHooks";
+import { Status, AuthToken } from "tweeter-shared";
 
 const PostStatus = () => {
   const { displayInfoMessage, deleteMessage, displayErrorMessage } = useMessageActions();

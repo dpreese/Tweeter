@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
-import { User, AuthToken } from "tweeter-shared/src";
+// import { User, AuthToken } from "tweeter-shared/src";
 import { UserInfoContext, UserInfoActionsContext } from "./UserInfoContexts";
 import { UserInfo } from "./UserInfo";
+import { User, AuthToken } from "tweeter-shared";
 
 const CURRENT_USER_KEY: string = "CurrentUserKey";
 const AUTH_TOKEN_KEY: string = "AuthTokenKey";

@@ -1,4 +1,5 @@
-import { User } from "tweeter-shared/src";
+// import { User } from "tweeter-shared/src";
+import { User } from "tweeter-shared";
 import { useNavigateToUser } from "../userInfo/UserInfoHooks";
 
 interface Props {

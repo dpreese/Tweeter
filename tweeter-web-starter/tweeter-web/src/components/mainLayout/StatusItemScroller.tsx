@@ -1,11 +1,12 @@
 // StatusItemScroller.tsx
-import { AuthToken, FakeData, Status, User } from "tweeter-shared/src";
+// import { AuthToken, FakeData, Status, User } from "tweeter-shared/src";
 import { useState, useEffect } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useParams } from "react-router-dom";
 import StatusItem from "../statusItem/StatusItem";
 import { useMessageActions } from "../toaster/MessageHooks";
 import { useUserInfoActions, useUserInfo } from "../userInfo/UserInfoHooks";
+import { AuthToken, Status, User, FakeData } from "tweeter-shared";
 
 export const PAGE_SIZE = 10;
 

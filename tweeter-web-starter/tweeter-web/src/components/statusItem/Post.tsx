@@ -1,4 +1,5 @@
-import { Status, Type} from "tweeter-shared/src";
+// import { Status, Type} from "tweeter-shared/src";
+import { Status, Type } from "tweeter-shared";
 import { useNavigateToUser } from "../userInfo/UserInfoHooks";
 
 interface Props {
