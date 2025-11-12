@@ -1,14 +1,26 @@
+// StatusItemScroller.tsx
 import { AuthToken, FakeData, Status, User } from "tweeter-shared/src";
 import { useState, useEffect } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useParams } from "react-router-dom";
 import StatusItem from "../statusItem/StatusItem";
 import { useMessageActions } from "../toaster/MessageHooks";
-import { useUserInfo, useUserInfoActions } from "../userInfo/UserInfoHooks";
+import { useUserInfoActions, useUserInfo } from "../userInfo/UserInfoHooks";
 
 export const PAGE_SIZE = 10;
 
-const FeedScroller = () => {
+interface Props {
+  itemDescription: string; // e.g., "feed" or "story" for error text
+  featureUrl: string;      // e.g., "/feed" or "/story" for StatusItem links
+  loadMore: (
+    authToken: AuthToken,
+    userAlias: string,
+    pageSize: number,
+    lastItem: Status | null
+  ) => Promise<[Status[], boolean]>;
+}
+
+const StatusItemScroller = (props: Props) => {
   const { displayErrorMessage } = useMessageActions();
   const [items, setItems] = useState<Status[]>([]);
   const [hasMoreItems, setHasMoreItems] = useState(true);
@@ -21,12 +33,13 @@ const FeedScroller = () => {
   const { setDisplayed } = useUserInfoActions();
   const { displayedUser: displayedUserAliasParam } = useParams();
 
-  // Update the displayed user context variable whenever the displayedUser url parameter changes. This allows browser forward and back buttons to work correctly.
+  // Update the displayed user context variable whenever the displayedUser url parameter changes.
+  // This allows browser forward and back buttons to work correctly.
   useEffect(() => {
     if (
       authToken &&
       displayedUserAliasParam &&
-      displayedUserAliasParam != displayedUser!.alias
+      displayedUserAliasParam !== displayedUser!.alias
     ) {
       getUser(authToken!, displayedUserAliasParam!).then((toUser) => {
         if (toUser) {
@@ -40,6 +53,7 @@ const FeedScroller = () => {
   useEffect(() => {
     reset();
     loadMoreItems(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayedUser]);
 
   const reset = async () => {
@@ -48,33 +62,23 @@ const FeedScroller = () => {
     setHasMoreItems(() => true);
   };
 
-  const loadMoreItems = async (lastItem: Status | null) => {
+  const loadMoreItems = async (last: Status | null) => {
     try {
-      const [newItems, hasMore] = await loadMoreFeedItems(
+      const [newItems, hasMore] = await props.loadMore(
         authToken!,
         displayedUser!.alias,
         PAGE_SIZE,
-        lastItem
+        last
       );
 
       setHasMoreItems(() => hasMore);
-      setLastItem(() => newItems[newItems.length - 1]);
+      setLastItem(() => (newItems.length ? newItems[newItems.length - 1] : last));
       addItems(newItems);
     } catch (error) {
       displayErrorMessage(
-        `Failed to load feed items because of exception: ${error}`,
+        `Failed to load ${props.itemDescription} items because of exception: ${error}`,
       );
     }
-  };
-
-  const loadMoreFeedItems = async (
-    authToken: AuthToken,
-    userAlias: string,
-    pageSize: number,
-    lastItem: Status | null
-  ): Promise<[Status[], boolean]> => {
-    // TODO: Replace with the result of calling server
-    return FakeData.instance.getPageOfStatuses(lastItem, pageSize);
   };
 
   const getUser = async (
@@ -99,7 +103,12 @@ const FeedScroller = () => {
             key={index}
             className="row mb-3 mx-0 px-0 border rounded bg-white"
           >
-            <StatusItem Status={item} featurePath="/feed" formattedDate={item.formattedDate} user={item.user} />
+            <StatusItem
+              Status={item}
+              featurePath={props.featureUrl}
+              formattedDate={item.formattedDate}
+              user={item.user}
+            />
           </div>
         ))}
       </InfiniteScroll>
@@ -107,4 +116,4 @@ const FeedScroller = () => {
   );
 };
 
-export default FeedScroller;
+export default StatusItemScroller;
