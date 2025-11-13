@@ -1,34 +1,26 @@
 import { useContext } from "react";
-// import { User, AuthToken, FakeData } from "tweeter-shared/src"
 import { UserInfoActionsContext, UserInfoContext } from "./UserInfoContexts";
 import { useNavigate } from "react-router-dom";
 import { useMessageActions } from "../toaster/MessageHooks";
-import { User, AuthToken, FakeData } from "tweeter-shared";
+import { User, AuthToken } from "tweeter-shared";
+import { UserService } from "../../model.service/UserService";
 
 interface UserInfoActions {
-  updateUser: (
-    currentUser: User,
-    displayedUser: User | null,
-    authToken: AuthToken,
-    remember: boolean
-  ) => void,
+  updateUser: (currentUser: User, displayedUser: User | null, authToken: AuthToken, remember: boolean) => void,
   clearUser: () => void,
   setDisplayed: (user: User) => void,
 }
 
 export const useUserInfoActions = (): UserInfoActions => {
-    const {updateUserInfo, clearUserInfo, setDisplayedUser} = useContext(UserInfoActionsContext)
+  const { updateUserInfo, clearUserInfo, setDisplayedUser } = useContext(UserInfoActionsContext);
+  return {
+    updateUser: (currentUser, displayedUser, authToken, remember) => updateUserInfo(currentUser, displayedUser, authToken, remember),
+    clearUser: clearUserInfo,
+    setDisplayed: (user) => setDisplayedUser(user),
+  };
+};
 
-    return {
-        updateUser: (currentUser: User, displayedUser: User | null, authToken: AuthToken, remember: boolean) => updateUserInfo(currentUser, displayedUser, authToken, remember),
-        clearUser: clearUserInfo,
-        setDisplayed: (user: User) => setDisplayedUser(user)
-    }
-}
-
-export const useUserInfo = () => {
-    return useContext(UserInfoContext)
-}
+export const useUserInfo = () => useContext(UserInfoContext);
 
 const normalizeAlias = (raw: string) => {
   const t = raw.trim();
@@ -36,24 +28,17 @@ const normalizeAlias = (raw: string) => {
 };
 
 export const useNavigateToUser = (featurePath: string) => {
-    const navigate = useNavigate();
-    const { displayedUser, authToken} = useUserInfo();
-    const { setDisplayed } = useUserInfoActions();
-    const { displayErrorMessage } = useMessageActions();
+  const navigate = useNavigate();
+  const { displayedUser, authToken } = useUserInfo();
+  const { setDisplayed } = useUserInfoActions();
+  const { displayErrorMessage } = useMessageActions();
+  const userSvc = new UserService();
 
-    const getUser = async (
-        token: AuthToken,
-        alias: string
-    ): Promise<User | null> => {
-        // TODO: replace with real server call in Milestone 3
-        return FakeData.instance.findUserByAlias(alias);
-    };
-
-    const goToUser = async (aliasRaw: string) => {
+  const goToUser = async (aliasRaw: string) => {
     try {
       const alias = normalizeAlias(aliasRaw);
       const token = authToken!;
-      const toUser = await getUser(token, alias);
+      const toUser = await userSvc.getUser(token, alias);
 
       if (toUser && (!displayedUser || !toUser.equals(displayedUser))) {
         setDisplayed(toUser);
@@ -75,4 +60,4 @@ export const useNavigateToUser = (featurePath: string) => {
   });
 
   return { goToUser, aliasLinkProps };
-}
+};

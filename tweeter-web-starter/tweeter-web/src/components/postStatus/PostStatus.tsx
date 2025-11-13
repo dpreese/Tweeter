@@ -1,63 +1,38 @@
 import "./PostStatus.css";
-import { useState } from "react";
-// import { AuthToken, Status } from "tweeter-shared/src";
+import { useMemo, useState } from "react";
 import { useMessageActions } from "../toaster/MessageHooks";
 import { useUserInfo } from "../userInfo/UserInfoHooks";
-import { Status, AuthToken } from "tweeter-shared";
+import { PostStatusView, PostStatusPresenter } from "../../presenter/PostStatusPresenter";
 
 const PostStatus = () => {
   const { displayInfoMessage, deleteMessage, displayErrorMessage } = useMessageActions();
-
   const { currentUser, authToken } = useUserInfo();
+
   const [post, setPost] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const submitPost = async (event: React.MouseEvent) => {
-    event.preventDefault();
+  const view: PostStatusView = useMemo(() => ({
+    setBusy: setIsLoading,
+    showInfo: (msg, sticky) => displayInfoMessage(msg, sticky ? 0 : 2000),
+    dismissMessage: (id) => deleteMessage(id),
+    showError: (msg) => displayErrorMessage(msg),
+    clearInput: () => setPost(""),
+  }), [displayInfoMessage, deleteMessage, displayErrorMessage]);
 
-    var postingStatusMessageId = "";
+  const presenter = useMemo(() => new PostStatusPresenter(view), [view]);
 
-    try {
-      setIsLoading(true);
-      postingStatusMessageId = displayInfoMessage(
-        "Posting status...",
-        0
-      );
-
-      const status = new Status(post, currentUser!, Date.now());
-
-      await postStatus(authToken!, status);
-
-      setPost("");
-      displayInfoMessage("Status posted!", 2000);
-    } catch (error) {
-      displayErrorMessage(
-        `Failed to post the status because of exception: ${error}`,
-      );
-    } finally {
-      deleteMessage(postingStatusMessageId);
-      setIsLoading(false);
-    }
+  const submitPost = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    await presenter.post(post, currentUser, authToken);
   };
 
-  const postStatus = async (
-    authToken: AuthToken,
-    newStatus: Status
-  ): Promise<void> => {
-    // Pause so we can see the logging out message. Remove when connected to the server
-    await new Promise((f) => setTimeout(f, 2000));
-
-    // TODO: Call the server to post the status
-  };
-
-  const clearPost = (event: React.MouseEvent) => {
-    event.preventDefault();
+  const clearPost = (e: React.MouseEvent) => {
+    e.preventDefault();
     setPost("");
   };
 
-  const checkButtonStatus: () => boolean = () => {
-    return !post.trim() || !authToken || !currentUser;
-  };
+  const checkButtonDisabled = () =>
+    !post.trim() || !authToken || !currentUser;
 
   return (
     <form>
@@ -68,9 +43,7 @@ const PostStatus = () => {
           rows={10}
           placeholder="What's on your mind?"
           value={post}
-          onChange={(event) => {
-            setPost(event.target.value);
-          }}
+          onChange={(event) => setPost(event.target.value)}
         />
       </div>
       <div className="form-group">
@@ -78,16 +51,12 @@ const PostStatus = () => {
           id="postStatusButton"
           className="btn btn-md btn-primary me-1"
           type="button"
-          disabled={checkButtonStatus()}
+          disabled={checkButtonDisabled()}
           style={{ width: "8em" }}
           onClick={submitPost}
         >
           {isLoading ? (
-            <span
-              className="spinner-border spinner-border-sm"
-              role="status"
-              aria-hidden="true"
-            ></span>
+            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
           ) : (
             <div>Post Status</div>
           )}
@@ -96,7 +65,7 @@ const PostStatus = () => {
           id="clearStatusButton"
           className="btn btn-md btn-secondary"
           type="button"
-          disabled={checkButtonStatus()}
+          disabled={checkButtonDisabled()}
           onClick={clearPost}
         >
           Clear

@@ -19,4 +19,28 @@ export class FollowService {
     // TODO: Replace with the result of calling server
     return FakeData.instance.getPageOfUsers(lastFollower, pageSize, userAlias);
   };
+  public async isFollower(
+    authToken: AuthToken,
+    currentUser: User,
+    selectedUser: User
+  ): Promise<boolean> {
+    // TODO (M3): real server call
+    return FakeData.instance.isFollower();
+  }
+
+  public async follow(
+    authToken: AuthToken,
+    userToFollow: User
+  ): Promise<void> {
+    // TODO (M3): server call; FakeData may not expose a follow mutation; no-op here
+    return;
+  }
+
+  public async unfollow(
+    authToken: AuthToken,
+    userToUnfollow: User
+  ): Promise<void> {
+    // TODO (M3): server call; no-op for M2A
+    return;
+  }
 }

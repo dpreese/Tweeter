@@ -1,13 +1,13 @@
 import "./Login.css";
 import "bootstrap/dist/css/bootstrap.css";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthenticationFormLayout from "../AuthenticationFormLayout";
-// import { AuthToken, FakeData, User } from "tweeter-shared/src";
 import AuthenticationFields from "../AuthenticationFields";
 import { useMessageActions } from "../../toaster/MessageHooks";
 import { useUserInfoActions } from "../../userInfo/UserInfoHooks";
-import { User, AuthToken, FakeData } from "tweeter-shared";
+import { AuthToken, User } from "tweeter-shared";
+import { AuthPresenter, AuthView } from "../../../presenter/AuthPresenter";
 
 interface Props {
   originalUrl?: string;
@@ -23,75 +23,50 @@ const Login = (props: Props) => {
   const { updateUser } = useUserInfoActions();
   const { displayErrorMessage } = useMessageActions();
 
-  const checkSubmitButtonStatus = (): boolean => {
-    return !alias || !password;
-  };
+  const view: AuthView = useMemo(() => ({
+    setBusy: setIsLoading,
+    showError: (msg) => displayErrorMessage(msg),
+    onLoggedIn: (user: User, token: AuthToken, remember: boolean, originalUrl?: string) => {
+      updateUser(user, user, token, remember);
+      if (originalUrl) navigate(originalUrl);
+      else navigate(`/feed/${user.alias}`);
+    },
+    onRegistered: () => {} // not used here
+  }), [displayErrorMessage, navigate, updateUser]);
+
+  const presenter = useMemo(() => new AuthPresenter(view), [view]);
+
+  const checkSubmitButtonStatus = (): boolean => !alias || !password;
 
   const loginOnEnter = (event: React.KeyboardEvent<HTMLElement>) => {
-    if (event.key == "Enter" && !checkSubmitButtonStatus()) {
+    if (event.key === "Enter" && !checkSubmitButtonStatus()) {
       doLogin();
     }
   };
 
   const doLogin = async () => {
-    try {
-      setIsLoading(true);
-
-      const [user, authToken] = await login(alias, password);
-
-      updateUser(user, user, authToken, rememberMe);
-
-      if (!!props.originalUrl) {
-        navigate(props.originalUrl);
-      } else {
-        navigate(`/feed/${user.alias}`);
-      }
-    } catch (error) {
-      displayErrorMessage(
-        `Failed to log user in because of exception: ${error}`
-      );
-    } finally {
-      setIsLoading(false);
-    }
+    await presenter.login(alias, password, rememberMe, props.originalUrl);
   };
 
-  const login = async (
-    alias: string,
-    password: string
-  ): Promise<[User, AuthToken]> => {
-    // TODO: Replace with the result of calling the server
-    const user = FakeData.instance.firstUser;
+  const inputFieldFactory = () => (
+    <>
+      <AuthenticationFields
+        mode="login"
+        originalURL={props.originalUrl}
+        alias={alias}
+        password={password}
+        setAlias={setAlias}
+        setPassword={setPassword}
+        onEnter={loginOnEnter}
+      />
+    </>
+  );
 
-    if (user === null) {
-      throw new Error("Invalid alias or password");
-    }
-
-    return [user, FakeData.instance.authToken];
-  };
-
-  const inputFieldFactory = () => {
-    return (
-      <>
-        <AuthenticationFields
-          mode="login"
-          originalURL={props.originalUrl}
-          alias={alias}
-          password={password}
-          setAlias={setAlias}
-          setPassword={setPassword}
-          onEnter={loginOnEnter}
-        />
-      </>
-    );
-  };
-
-  const switchAuthenticationMethodFactory = () => {
-    return (
-      <div className="mb-3">
-        Not registered? <Link to="/register">Register</Link>
-      </div>
-    );
-  };
+  const switchAuthenticationMethodFactory = () => (
+    <div className="mb-3">
+      Not registered? <Link to="/register">Register</Link>
+    </div>
+  );
 
   return (
     <AuthenticationFormLayout

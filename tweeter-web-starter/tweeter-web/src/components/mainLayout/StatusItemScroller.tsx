@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import StatusItem from "../statusItem/StatusItem";
 import { useMessageActions } from "../toaster/MessageHooks";
 import { useUserInfoActions, useUserInfo } from "../userInfo/UserInfoHooks";
-import { AuthToken, Status, User, FakeData } from "tweeter-shared";
+import { AuthToken, Status, User } from "tweeter-shared";
 import { StatusItemPresenter, StatusItemView } from "../../presenter/StatusItemPresenter";
 
 interface Props {
@@ -39,7 +39,7 @@ const StatusItemScroller = (props: Props) => {
       displayedUserAliasParam &&
       displayedUserAliasParam !== displayedUser!.alias
     ) {
-      getUser(authToken!, displayedUserAliasParam!).then((toUser) => {
+      presenterRef.current!.getUser(authToken!, displayedUserAliasParam!).then((toUser) => {
         if (toUser) {
           setDisplayed(toUser);
         }
@@ -62,13 +62,6 @@ const StatusItemScroller = (props: Props) => {
 
   const loadMoreItems = async () => {
     presenterRef.current!.loadMoreItems(authToken!, displayedUser!.alias)
-  };
-
-  const getUser = async (
-    authToken: AuthToken,
-    alias: string
-  ): Promise<User | null> => {
-    return presenterRef.current!.getUser(authToken, alias);
   };
 
   return (
