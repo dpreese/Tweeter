@@ -12,8 +12,13 @@ import MainLayout from "./components/mainLayout/MainLayout";
 import Toaster from "./components/toaster/Toaster";
 import UserItemScroller from "./components/mainLayout/UserItemScroller";
 import StatusItemScroller from "./components/mainLayout/StatusItemScroller";
-import { AuthToken, User, FakeData, Status } from "tweeter-shared";
 import { useUserInfo } from "./components/userInfo/UserInfoHooks";
+import { UserItemView } from "./presenter/UserItemPresenter";
+import { FolloweePresenter } from "./presenter/FolloweePresenter";
+import { FollowerPresenter } from "./presenter/FollowerPresenter";
+import { StatusItemView } from "./presenter/StatusItemPresenter";
+import { StoryPresenter } from "./presenter/StoryPresenter";
+import { FeedPresenter } from "./presenter/FeedPresenter";
 
 const App = () => {
   const { currentUser, authToken } = useUserInfo();
@@ -39,43 +44,6 @@ const App = () => {
 const AuthenticatedRoutes = () => {
   const { displayedUser } = useUserInfo();
 
-  const loadMoreFollowees = async (
-      authToken: AuthToken,
-      userAlias: string,
-      pageSize: number,
-      lastItem: User | null
-  ): Promise<[User[], boolean]> => {
-      // TODO: Replace with the result of calling server
-      return FakeData.instance.getPageOfUsers(lastItem, pageSize, userAlias);
-  };
-  const loadMoreFollowers = async (
-    authToken: AuthToken,
-    userAlias: string,
-    pageSize: number,
-    lastFollower: User | null
-  ): Promise<[User[], boolean]> => {
-    // TODO: Replace with the result of calling server
-    return FakeData.instance.getPageOfUsers(lastFollower, pageSize, userAlias);
-  };
-  const loadMoreStoryItems = async (
-      authToken: AuthToken,
-      userAlias: string,
-      pageSize: number,
-      lastItem: Status | null
-  ): Promise<[Status[], boolean]> => {
-      // TODO: Replace with the result of calling server
-      return FakeData.instance.getPageOfStatuses(lastItem, pageSize);
-  };
-  const loadMoreFeedItems = async (
-    authToken: AuthToken,
-    userAlias: string,
-    pageSize: number,
-    lastItem: Status | null
-  ): Promise<[Status[], boolean]> => {
-    // TODO: Replace with the result of calling server
-    return FakeData.instance.getPageOfStatuses(lastItem, pageSize);
-  };
-
   return (
     <Routes>
       <Route element={<MainLayout />}>
@@ -85,9 +53,8 @@ const AuthenticatedRoutes = () => {
           element={
             <StatusItemScroller 
             key={`feed-${displayedUser!.alias}`}
-            itemDescription="feed"
             featureUrl="/feed"
-            loadMore={loadMoreFeedItems}
+            presenterFactory={(view: StatusItemView) => new FeedPresenter(view)}
             />
           } 
         />
@@ -96,9 +63,8 @@ const AuthenticatedRoutes = () => {
           element={
             <StatusItemScroller 
             key={`story-${displayedUser!.alias}`}
-            itemDescription="story"
             featureUrl="/story"
-            loadMore={loadMoreStoryItems}
+            presenterFactory={(view: StatusItemView) => new StoryPresenter(view)}
             />
           } 
         />
@@ -107,9 +73,8 @@ const AuthenticatedRoutes = () => {
           element={
             <UserItemScroller 
               key={`followees-${displayedUser!.alias}`}
-              itemDescription="followees" 
-              featureUrl="/followees" 
-              loadMore={loadMoreFollowees}
+              featureUrl="/followees"
+              presenterFactory={(view: UserItemView) => new FolloweePresenter(view)}
             />
           } 
         />
@@ -118,9 +83,8 @@ const AuthenticatedRoutes = () => {
           element={
             <UserItemScroller 
               key={`followers-${displayedUser!.alias}`}
-              itemDescription="followers" 
-              featureUrl="/followers" 
-              loadMore={loadMoreFollowers} 
+              featureUrl="/followers"
+              presenterFactory={(view: UserItemView) => new FollowerPresenter(view)}
             />
           } 
         />
